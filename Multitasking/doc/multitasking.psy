@@ -1,0 +1,280 @@
+options
+  bitmapdir stimuli
+  set &mixingStatus 0 # 1=pure,2=mixed
+  set &CurrentTask 0
+  set &previousTask 0
+
+fonts
+  arial 18
+  
+bitmaps
+  ################# for count down ### ######################
+  countdown
+  countdown1
+  countdown2
+  countdown3
+  ################# for task switching ######################
+  info1
+  info2
+  info3
+  info4
+  info5
+  info6
+  info7
+  info8
+  info9
+  info10
+  info11
+  fillinginstruction
+  shapeinstruction
+  shape1fill1  # diamond
+  shape1fill2  # diamond
+  shape2fill1  # rect 2 filled circles
+  shape2fill2  # rect 3 filled circles
+  tooslow
+  wrongkey
+  frame
+  gojustshape
+  gojustfilling
+  gomixshapefilling
+  readyreal
+  readytraining
+  ##
+  thankyou
+
+######################################################################
+# task switching table
+######################################################################
+
+table shapetask
+  "shape congruent   left "   shape1fill1  4 1
+  "shape incongruent right"   shape2fill1  5 2
+  "shape incongruent left "   shape1fill2  4 1
+  "shape congruent   right"   shape2fill2  5 2
+
+table fillingtask
+  "fill  congruent   left "  shape1fill1  4 1
+  "fill  incongruent left "  shape2fill1  4 1
+  "fill  incongruent right"  shape1fill2  5 2
+  "fill  congruent   right"  shape2fill2  5 2
+
+######################################################################
+# task switching tasks
+######################################################################
+
+task filling
+  table fillingtask
+  keys b n
+  # -- for later data analysis --------
+  set &CurrentTask 1
+  if &CurrentTask == &previousTask
+    set $taskSwitch 1
+  fi
+  if &CurrentTask != &previousTask
+    set $taskSwitch 2
+  fi
+  set &previousTask &CurrentTask
+  #------------------------------------
+  if &CurrentTask == &previousTask
+    set $taskSwitch 1
+  fi
+  if &CurrentTask != &previousTask
+    set $taskSwitch 2
+  fi
+  set &previousTask &CurrentTask
+  show bitmap frame              # 1
+  delay 800
+  show bitmap @2 0 70            # 2
+  readkey @4 &maxtime
+  clear 2
+  if STATUS == WRONG
+    show bitmap wrongkey       # 3
+    delay 1000
+    clear -1
+  fi
+  if STATUS == TIMEOUT
+    show bitmap tooslow         # 3
+    delay 1000
+    clear -1
+  fi
+  if STATUS == WRONG || STATUS == TIMEOUT
+    show bitmap fillinginstruction # 4
+    delay 5000
+    clear -1                        # 4
+    delay 500
+  fi
+  save BLOCKNAME TABLEROW @1 STATUS RT &mixingStatus $taskSwitch
+
+task shape
+  table shapetask
+  keys b n
+  # -- for later data analysis --------
+  set &CurrentTask 2
+  if &CurrentTask == &previousTask
+    set $taskSwitch 1
+  fi
+  if &CurrentTask != &previousTask
+    set $taskSwitch 2
+  fi
+  set &previousTask &CurrentTask
+  #------------------------------------
+  show bitmap frame                # 1
+  delay 800
+  show bitmap @2 0 -70             # 2
+  readkey @4 &maxtime
+  clear 2
+  if STATUS == WRONG
+    show bitmap wrongkey          # 3
+    delay 1000
+    clear -1
+  fi
+  if STATUS == TIMEOUT
+    show bitmap tooslow           # 3
+    delay 1000
+    clear -1
+  fi
+  if STATUS == WRONG || STATUS == TIMEOUT
+    show bitmap shapeinstruction  # 4
+    delay 5000
+    clear -1
+    delay 500
+  fi
+  save BLOCKNAME TABLEROW @1 STATUS RT &mixingStatus $taskSwitch
+
+# -------------------------------------------------------
+#      B L O C K S
+# -------------------------------------------------------
+
+######################################################################
+#                            B L O C K S
+######################################################################
+
+block switchtrainingpureshape      ### TRAINING TASK SWITCHING 1
+  pager info1 info2 info3 info4 info5 info6 info7 info8 info9 info10 info11
+  message readytraining
+  set &maxtime 4000
+  set &mixingStatus 1 ## in one-task blocks  
+  bitmap gojustshape
+  wait_for_key
+  bitmap countdown
+  delay 1000
+  bitmap countdown3
+  delay 1000
+  bitmap countdown2
+  delay 1000
+  bitmap countdown1
+  delay 1000
+  tasklist
+    shape   10
+  end
+
+message readytraining
+
+block switchtrainingpurefilling
+  set &mixingStatus 1 ## in one-task blocks
+  bitmap gojustfilling
+  wait_for_key
+  bitmap countdown
+  delay 1000
+  bitmap countdown3
+  delay 1000
+  bitmap countdown2
+  delay 1000
+  bitmap countdown1
+  delay 1000
+  tasklist
+    filling 10
+  end
+
+message readytraining
+
+block switchtrainingmixedshapefilling
+  set &mixingStatus 2 ## in interleaved blocks
+  bitmap gomixshapefilling
+  wait_for_key
+  bitmap countdown
+  delay 1000
+  bitmap countdown3
+  delay 1000
+  bitmap countdown2
+  delay 1000
+  bitmap countdown1
+  delay 1000
+  tasklist
+    filling 10
+    shape   10
+  end
+
+message readyreal
+
+block switchpureshape
+  set &mixingStatus 1 ## in one-task blocks  
+  bitmap gojustshape
+  wait_for_key
+  bitmap countdown
+  delay 1000
+  bitmap countdown3
+  delay 1000
+  bitmap countdown2
+  delay 1000
+  bitmap countdown1
+  delay 1000
+  tasklist
+    shape   48
+  end
+
+message readyreal
+
+block switchpurefilling
+  set &mixingStatus 1 ## in one-task blocks  
+  bitmap gojustfilling
+  wait_for_key
+  bitmap countdown
+  delay 1000
+  bitmap countdown3
+  delay 1000
+  bitmap countdown2
+  delay 1000
+  bitmap countdown1
+  delay 1000
+  tasklist
+    filling 48
+  end
+
+message readyreal
+
+block switchmixedshapefilling
+  set &mixingStatus 2 ## in interleaved blocks
+  bitmap gomixshapefilling
+  wait_for_key
+  bitmap countdown
+  delay 1000
+  bitmap countdown3
+  delay 1000
+  bitmap countdown2
+  delay 1000
+  bitmap countdown1
+  delay 1000
+  tasklist
+    filling 48
+    shape   48
+  end
+  feedback
+    set &PureTrials   mean c7 ; select c6 == 1 && c8 == 1 && c9 == 1
+    set &MixedTrials  mean c7 ; select c6 == 1 && c8 == 2 && c9 == 1    
+    set &RepeatTrials mean c7 ; select c6 == 1 && c8 == 2 && c9 == 1  
+    set &SwitchTrials mean c7 ; select c6 == 1 && c8 == 2 && c9 == 2
+    set &MixCost expression &MixedTrials - &PureTrials
+    set &SwitchCost expression &SwitchTrials - &RepeatTrials
+    text 0 -200 &PureTrials ; prefix "RT in pure trials:" ; postfix "ms"
+    text 0 -150 &MixedTrials ; prefix "RT in mixed trials:" ; postfix "ms"
+    text 0 -100 &MixCost ; prefix "Mixing cost:" ; postfix "ms"        
+    text 0   50 &RepeatTrials ; prefix "RT in task-repeat trials (in mixed blocks):" ; postfix "ms"
+    text 0  100 &SwitchTrials ; prefix "RT in task-switching trials (in mixed blocks):" ; postfix "ms"
+    text 0  150 &SwitchCost ; prefix "Task-switch cost:" ; postfix "ms"
+    text 0  250 "Press space bar."
+  end
+  
+##########################
+
+message thankyou
