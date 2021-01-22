@@ -53,6 +53,7 @@ class Attentional_Blink(QWidget):
         hbox = QHBoxLayout(self)
         title = QPixmap("doc/pictures/title.png")
         self.title = QLabel(self)
+        self.title.resize(self.width, self.height)
         self.title.setPixmap(title)
         hbox.addWidget(self.title)
         self.setLayout(hbox)

@@ -18,8 +18,7 @@ class Multitasking(QWidget):
         # self.wrong = 2
         # self.slow = 3
 
-        # self.data = [] #результаты
-        # self.load_data() #подгружаем csv табличку с готовыми вариантами тестов 
+        self.data = [] #результаты
 
         self.width = QApplication.desktop().width()
         self.height = QApplication.desktop().height()
@@ -69,49 +68,61 @@ class Multitasking(QWidget):
             gojustshape = QPixmap('doc/pictures/gojustshape.png')
             self.title.setPixmap(gojustshape)
             self.stimul_lbl.setGeometry(self.width/2-125, self.height/2-290, 250, 250)
+            if self.test_number == 1:
+                self.data_row = ['switchtrainingpureshape', '', 'shape']
+            else:
+                self.data_row = ['switchpureshape', '', 'shape']
+
         elif self.test_number == 2 or self.test_number == 5:
             gojustfilling = QPixmap('doc/pictures/gojustfilling.png')
             self.title.setPixmap(gojustfilling)
             self.stimul_lbl.setGeometry(self.width/2-125, self.height/2+30, 250, 250)
+            if self.test_number == 2:
+                self.data_row = ['switchtrainingpurefilling', '', 'fill']
+            else:
+                self.data_row = ['switchpurefilling', '', 'fill']
+
         elif self.test_number == 3 or self.test_number == 6:
             gomixshapefilling = QPixmap('doc/pictures/gomixshapefilling.png')
             self.title.setPixmap(self.gomixshapefilling)
+            if self.test_number == 3:
+                self.data_row = ['switchtrainingmixedshapefilling', '']
+            else:
+                self.data_row = ['switchmixedshapefilling', '']
                         
         
     def test(self):
         self.count = 1
         self.title.setPixmap(self.frame)
         self.s = self.random_stimul()
-        # if self.test_number == 3:
-        #     self.s = self.random_stimul_20()
-        # elif self.test_number == 1 or self.test_number == 2:
-        #     self.s = self.random_stimul_10()
-        # elif self.test_number == 4 or self.test_number == 5:
-        #     self.s = self.random_stimul_48()
-        # elif self.test_number == 6:
-        #     self.s = self.random_stimul_92()
         self.training_1()
         
 
     def training_1(self): 
-        self.stimul = self.s[self.count]
-        picture = f'self.s{self.stimul}'
+        if self.count <= self.count_list[self.test_number]:
+            self.stimul = self.s[self.count]
+            picture = f'self.s{self.stimul}'
 
-        self.resp = self.stimul
+            self.resp = self.stimul
 
-        self.stimul_lbl.setPixmap(eval(picture))
-        if self.test_number == 3 or self.test_number == 6:
-            position_list = [-290, 30]
-            self.position = choice(position_list)
-            self.stimul_lbl.setGeometry(self.width/2-125, self.height/2+self.position, 250, 250)
-        self.stimul_lbl.setAlignment(QtCore.Qt.AlignCenter)
-        self.stimul_lbl.show()
+            self.stimul_lbl.setPixmap(eval(picture))
+            if self.test_number == 3 or self.test_number == 6:
+                position_list = [-290, 30]
+                self.position = choice(position_list)
+                self.stimul_lbl.setGeometry(self.width/2-125, self.height/2+self.position, 250, 250)
+            self.stimul_lbl.setAlignment(QtCore.Qt.AlignCenter)
+            self.stimul_lbl.show()
 
-        self.dont_press_button = False
+            self.dont_press_button = False
+            self.step_1 = time()
 
-        self.timer = QtCore.QTimer()
-        self.timer.start(4000)
-        self.timer.timeout.connect(self.slow_4sec)
+            self.timer = QtCore.QTimer()
+            self.timer.start(4000)
+            self.timer.timeout.connect(self.slow_4sec)
+        else:
+            self.stimul_lbl.hide()
+            self.test_number += 1  
+            self.instr_2()
 
 
     def slow_4sec(self):
@@ -204,6 +215,22 @@ class Multitasking(QWidget):
         self.test()
     
 
+    def write_csv(self): #при закрытии теста результаты сохраняются в файл
+        path = 'results/' + str(strftime('%d-%b-%Y-%H-%M', localtime(time()))) + '.csv'
+        with open(path, "w", newline='') as csv_file:
+            writer = csv.writer(csv_file, delimiter=',')
+            writer.writerow(['blockname', 
+                             'tablerow number (1-4)', 
+                             'name of task (fill or shape)', 
+                             'congruency (congruent or incongruent)', 
+                             'response position (left or right )', 
+                             'status (1=correct, 2=wrong, 3=slow)', 
+                             'response time (milliseconds)', 
+                             'mixing (1=in pure block, 2=in mixing block)',
+                             'switching (1=repeat trial, 2=switch trial)'])
+            writer.writerows(self.data)
+
+
     def keyPressEvent(self, e):
         
         if e.key() == QtCore.Qt.Key_Space:
@@ -222,6 +249,7 @@ class Multitasking(QWidget):
         if e.key() == QtCore.Qt.Key_B:
             if not self.dont_press_button:
                 self.timer.stop()
+                rt = round((time() - self.step_1)*1000, 1)
                 self.dont_press_button = True
                 
                 if self.count <= self.count_list[self.test_number]:
